@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-backend
+  labels:
+    app: todo-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: todo-backend
+  template:
+    metadata:
+      labels:
+        app: todo-backend
+    spec:
+      imagePullSecrets:
+        - name: harbor-registry-secret
+      containers:
+        - name: backend
+          image: registry.arutien.top/devops/mern-todo-app-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000 # Cổng backend chạy bên trong container
+          env:
+            - name: MONGO_URI
+              value: "mongodb://ReaTiMo:hoangtien123@54.221.183.93:27017/todo?authSource=admin"
+            # --- THÊM BIẾN MÔI TRƯỜNG DƯỚI ĐÂY ---
+            - name: PORT
+              value: "8000" # Ép code NodeJS nhận và chạy ở cổng 8000
+            - name: JWT_SECRET
+              value: "BI_MAT"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-backend-service
+spec:
+  selector:
+    app: todo-backend
+  ports:
+    - protocol: TCP
+      port: 8000      # Cổng của Service trong cụm K8s
+      targetPort: 8000 # SỬA THÀNH 8000: Đẩy chính xác luồng dữ liệu vào containerPort 8000
+      nodePort: 31000  # Cổng mở ra ngoài máy EC2 để test
+  type: NodePort

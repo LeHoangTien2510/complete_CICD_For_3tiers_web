@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-frontend
+  labels:
+    app: todo-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: todo-frontend
+  template:
+    metadata:
+      labels:
+        app: todo-frontend
+    spec:
+      imagePullSecrets:
+        - name: harbor-registry-secret
+      containers:
+        - name: frontend
+          image: registry.arutien.top/devops/mern-todo-app-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80 # Nginx bên trong container chạy cổng 80 như cấu hình Dockerfile trước đó
+          env:
+            - name: REACT_APP_API_URL
+              value: "http://todo-backend-service:8000" # K8s tự động phân giải tên Service của Backend thành IP mạng nội bộ
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-frontend-service
+spec:
+  selector:
+    app: todo-frontend
+  ports:
+    - protocol: TCP
+      port: 3000      # Cổng logic của Service
+      targetPort: 80   # Ném luồng dữ liệu vào cổng 80 của Nginx
+      nodePort: 32000  # Cổng vật lý mở trên TẤT CẢ các máy EC2 (K8s giới hạn NodePort từ 30000-32767)
+  type: NodePort

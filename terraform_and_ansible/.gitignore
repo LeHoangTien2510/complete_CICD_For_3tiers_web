@@ -1,0 +1,17 @@
+# Chặn toàn bộ các file/thư mục có tên là .terraform ở bất kỳ ngóc ngách nào
+**/.terraform/
+**/.terraform.d/
+
+# Chặn các file trạng thái và lock của Terraform ở mọi nơi
+**/*.tfstate
+**/*.tfstate.*
+**/*.lock.hcl
+
+# Chặn file private key bảo mật và file môi trường
+**/*.pem
+**/*.env
+
+# Chặn các thư mục cache khác
+**/.cache/
+**/.ansible/
+**/.ssh/

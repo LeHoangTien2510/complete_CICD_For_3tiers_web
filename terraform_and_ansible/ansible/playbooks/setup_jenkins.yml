@@ -1,0 +1,62 @@
+---
+- name: Triển khai Jenkins, Nginx và Nginx Proxy Manager
+  hosts: tag_Role_jenkins:&project_todolist
+  become: true
+  tasks:
+    - name: Cài đặt Nginx trực tiếp trên máy host
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Đảm bảo Nginx service đang chạy
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Tạo thư mục chứa cấu hình Jenkins & NPM
+      file:
+        path: /opt/jenkins_npm
+        state: directory
+        mode: '0755'
+
+    - name: Tạo file docker-compose.yml
+      copy:
+        dest: /opt/jenkins_npm/docker-compose.yml
+        content: |
+          services:
+            jenkins:
+              image: jenkins/jenkins:lts
+              container_name: jenkins_server
+              restart: always
+              privileged: true
+              user: root
+              ports:
+                - "8080:8080"
+                - "50000:50000"
+              volumes:
+                - jenkins_data:/var/jenkins_home
+                - /var/run/docker.sock:/var/run/docker.sock # Cho phép Jenkins gọi Docker host
+            
+            npm:
+              image: jc21/nginx-proxy-manager:latest
+              container_name: nginx_proxy_manager
+              restart: always
+              ports:
+                - "81:81"     # Cổng giao diện quản trị NPM
+                - "8081:80"   # Tránh xung đột với Nginx host chạy cổng 80
+                - "4443:443"  # Tránh xung đột cổng HTTPS
+              volumes:
+                - npm_data:/data
+                - npm_letsencrypt:/etc/letsencrypt
+          
+          volumes:
+            jenkins_data:
+            npm_data:
+            npm_letsencrypt:
+
+    - name: Khởi động Jenkins và NPM
+      command: docker compose up -d
+      args:
+        chdir: /opt/jenkins_npm

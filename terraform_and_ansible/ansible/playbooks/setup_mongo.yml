@@ -1,0 +1,39 @@
+---
+- name: Triển khai MongoDB
+  hosts: tag_Role_mongodb:&project_todolist
+  become: true
+  tasks:
+    - name: Tạo thư mục chứa cấu hình
+      file:
+        path: /opt/mongodb
+        state: directory
+        mode: '0755'
+
+    - name: Đẩy file .env từ máy local (container) lên server EC2
+      copy:
+        src: .env 
+        dest: /opt/mongodb/.env
+        mode: '0600' 
+
+    - name: Tạo file docker-compose.yml cho MongoDB
+      copy:
+        dest: /opt/mongodb/docker-compose.yml
+        content: |
+          services:
+            mongodb:
+              image: mongo:latest
+              container_name: mongodb_server
+              restart: always
+              ports:
+                - "27017:27017"
+              env_file:
+                - .env # Thằng Docker Compose trên EC2 sẽ đọc file .env vừa được copy lên
+              volumes:
+                - mongo_data:/data/db
+          volumes:
+            mongo_data:
+
+    - name: Khởi động MongoDB
+      command: docker compose up -d
+      args:
+        chdir: /opt/mongodb
