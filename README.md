@@ -66,22 +66,25 @@ flowchart TB
 
 Note: An AWS Budget is configured via Terraform to send an email alert if monthly costs exceed $30 USD.
 
-## Deployment Lifecycle
+```mermaid
 sequenceDiagram
     participant Dev as Developer
     participant Git as GitHub
     participant Jen as Jenkins
     participant Har as Harbor
-    participant K8s as Kubernetes
+    participant Master as K8s Master Node
+    participant Worker as K8s Worker Nodes
     
     Dev->>Git: Push application code
-    Git->>Jen: Webhook trigger
+    Dev->>Jen: Manually trigger "Build Now"
+    Jen->>Git: Clone source code
     Jen->>Jen: Build Docker Images (FE & BE)
     Jen->>Har: Push tagged images to private registry
-    Jen->>K8s: Apply deployment manifests
-    K8s->>Har: Authenticate & Pull latest images
-    K8s->>K8s: Perform rolling update
-
+    Jen->>Master: kubectl apply deployment manifests
+    Master->>Worker: Schedule Pods onto nodes
+    Worker->>Har: Authenticate & Pull latest images
+    Worker->>Worker: Perform rolling update
+```
 ## Repository Map
 
 | Path | Responsibility |
