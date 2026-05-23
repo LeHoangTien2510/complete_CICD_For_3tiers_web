@@ -102,7 +102,7 @@ The following steps describe the complete lifecycle from a code commit to a live
 2. **Manual CI Trigger:** The developer manually triggers the "Build Now" action for the pipeline within the Jenkins UI. *(Note: GitHub Webhook automation is planned for future iterations).*
 3. **Build Stage (Jenkins):** - Jenkins clones the latest source code from the repository.
    - It builds two separate Docker images: one for the React Frontend and one for the Node.js Backend.
-4. **Push to Registry:** Jenkins securely logs into the private Harbor registry and pushes the newly built images with specific version tags.
+4. **Push to Registry:** Jenkins securely logs into the private Harbor registry and pushes the newly built images with specific version tags.sssssssssss
 5. **Deployment (CD):** - Jenkins connects to the Kubernetes Master node.
    - It executes `kubectl apply` commands using the `frontend-deploy.yaml` and `backend-deploy.yaml` manifests to update the deployment state in the cluster.
 6. **Orchestration & Image Pull:** - The K8s Master node schedules the new Pods onto the Worker nodes.
